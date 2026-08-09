@@ -1,0 +1,100 @@
+// BNI 管理系統 - 資料庫結構
+// 文件: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 通訊錄聯絡人（BNI 夥伴 / 潛在客戶）
+model Contact {
+  id         String   @id @default(cuid())
+  name       String
+  company    String?
+  title      String?
+  industry   String?
+  bniChapter String? // 所屬分會
+  phone      String?
+  email      String?
+  address    String? // 用於 Google 地圖
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  bookings Booking[]
+  meetings Meeting[]
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// 一對一預約
+model Booking {
+  id             String        @id @default(cuid())
+  token          String        @unique @default(cuid()) // 供對方免登入存取的專屬連結
+  contactId      String
+  contact        Contact       @relation(fields: [contactId], references: [id])
+  scheduledAt    DateTime
+  location       String?
+  notes          String?       @db.Text
+  status         BookingStatus @default(PENDING)
+  reminderSentAt DateTime?
+  meeting        Meeting?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+enum SummaryStatus {
+  NONE
+  PENDING
+  READY
+  FAILED
+}
+
+// 一對一紀錄（逐字稿 + AI 摘要 + 照片）
+model Meeting {
+  id            String        @id @default(cuid())
+  contactId     String
+  contact       Contact       @relation(fields: [contactId], references: [id])
+  bookingId     String?       @unique
+  booking       Booking?      @relation(fields: [bookingId], references: [id])
+  transcript    String?       @db.Text
+  summary       String?       @db.Text
+  summaryStatus SummaryStatus @default(NONE)
+  photos        Photo[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum PhotoType {
+  BUSINESS_CARD
+  SLIDE
+  OTHER
+}
+
+// 照片（名片 / 簡報 / 其他）
+model Photo {
+  id        String    @id @default(cuid())
+  meetingId String
+  meeting   Meeting   @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  type      PhotoType
+  filename  String
+  createdAt DateTime  @default(now())
+}
+
+// Email 寄送紀錄
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  status    String
+  createdAt DateTime @default(now())
+}
