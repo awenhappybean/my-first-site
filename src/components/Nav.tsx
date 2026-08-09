@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { auth, signOut } from "@/auth";
 
 const links = [
   { href: "/", label: "總覽" },
@@ -8,7 +9,9 @@ const links = [
   { href: "/email", label: "發送 Email" },
 ];
 
-export default function Nav() {
+export default async function Nav() {
+  const session = await auth();
+
   return (
     <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
@@ -33,6 +36,27 @@ export default function Nav() {
           <Link href="/book" className="ml-2 btn-accent text-sm">
             預約一對一
           </Link>
+          {session?.user ? (
+            <div className="ml-2 flex items-center gap-2">
+              <span className="hidden text-xs text-[var(--muted)] sm:inline">
+                {session.user.email}
+              </span>
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut({ redirectTo: "/login" });
+                }}
+              >
+                <button className="btn-outline text-sm" type="submit">
+                  登出
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link href="/login" className="btn-outline ml-2 text-sm">
+              登入
+            </Link>
+          )}
         </nav>
       </div>
     </header>
