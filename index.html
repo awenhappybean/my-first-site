@@ -233,6 +233,14 @@
     font-weight: 800;
     color: var(--terracotta);
     box-shadow: inset 0 0 0 6px var(--white);
+    overflow: hidden;
+  }
+
+  .avatar-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   /* Section shared */
@@ -510,7 +518,9 @@
     </div>
     <div class="hero-portrait">
       <div class="avatar-frame">
-        <div class="avatar-inner">鄧</div>
+        <div class="avatar-inner">
+          <img src="assets/profile.jpg" alt="鄧琇文">
+        </div>
       </div>
     </div>
   </div>
